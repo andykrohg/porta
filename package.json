@@ -6,7 +6,7 @@
   },
   "license": "Apache-2.0",
   "scripts": {
-    "install:safe": "yarn install --frozen-lockfile --check-files --prefer-offline --link-duplicates",
+    "install:safe": "yarn install --frozen-lockfile --check-files --prefer-offline --link-duplicates --network-timeout 100000",
     "clean": "rm -rf node_modules/ && yarn cache clean",
     "flow:install": "flow-typed install",
     "lint": "flow && eslint --ext .js,.jsx app/javascript spec/javascripts",

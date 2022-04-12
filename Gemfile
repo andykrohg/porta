@@ -15,7 +15,7 @@ gem 'aws-sdk-rails', '~> 2'
 gem 'aws-sdk-s3', '~> 1'
 
 gem 'dotenv-rails', '~> 2.7'
-gem 'rails', '~> 5.0.7'
+gem 'rails',  git: 'https://github.com/andykrohg/rails.git', branch: '5.0.7-fips'
 
 # Needed for XML serialization of ActiveRecord::Base
 gem "activejob-uniqueness", github: "3scale/activejob-uniqueness", branch: "main"

@@ -1,0 +1,11 @@
+FROM registry.redhat.io/3scale-amp2/system-rhel7:1.15.1-18.1649256479
+ARG rails_version=5.0.7.2
+
+COPY patches/ /opt/system/patches
+USER root
+RUN git apply --no-index --directory /opt/system/vendor/bundle/ruby/2.6.0/gems/actionpack-$rails_version --unsafe-paths patches/actionpack.patch && \
+    git apply --no-index --directory /opt/system/vendor/bundle/ruby/2.6.0/gems/actionview-$rails_version --unsafe-paths patches/actionview.patch && \
+    git apply --no-index --directory /opt/system/vendor/bundle/ruby/2.6.0/gems/activerecord-$rails_version --unsafe-paths patches/activerecord.patch && \
+    git apply --no-index --directory /opt/system/vendor/bundle/ruby/2.6.0/gems/activesupport-$rails_version --unsafe-paths patches/activesupport.patch
+
+USER default

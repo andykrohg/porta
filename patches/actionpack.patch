@@ -1,0 +1,60 @@
+diff --git a/actionpack/lib/action_controller/metal/http_authentication.rb b/actionpack/lib/action_controller/metal/http_authentication.rb
+index 4639348509f3..9929ef62bb80 100644
+--- a/lib/action_controller/metal/http_authentication.rb
++++ b/lib/action_controller/metal/http_authentication.rb
+@@ -138,7 +138,7 @@ def authentication_request(controller, realm, message)
+     #   class PostsController < ApplicationController
+     #     REALM = "SuperSecret"
+     #     USERS = {"dhh" => "secret", #plain text password
+-    #              "dap" => Digest::MD5.hexdigest(["dap",REALM,"secret"].join(":"))}  #ha1 digest password
++    #              "dap" => ActiveSupport::Digest.hexdigest(["dap",REALM,"secret"].join(":"))}  #ha1 digest password
+     #
+     #     before_action :authenticate, except: [:index]
+     #
+@@ -226,12 +226,12 @@ def validate_digest_response(request, realm, &password_procedure)
+       # of a plain-text password.
+       def expected_response(http_method, uri, credentials, password, password_is_ha1=true)
+         ha1 = password_is_ha1 ? password : ha1(credentials, password)
+-        ha2 = ::Digest::MD5.hexdigest([http_method.to_s.upcase, uri].join(':'))
+-        ::Digest::MD5.hexdigest([ha1, credentials[:nonce], credentials[:nc], credentials[:cnonce], credentials[:qop], ha2].join(':'))
++        ha2 = ::ActiveSupport::Digest.hexdigest([http_method.to_s.upcase, uri].join(':'))
++        ::ActiveSupport::Digest.hexdigest([ha1, credentials[:nonce], credentials[:nc], credentials[:cnonce], credentials[:qop], ha2].join(':'))
+       end
+ 
+       def ha1(credentials, password)
+-        ::Digest::MD5.hexdigest([credentials[:username], credentials[:realm], password].join(':'))
++        ::ActiveSupport::Digest.hexdigest([credentials[:username], credentials[:realm], password].join(':'))
+       end
+ 
+       def encode_credentials(http_method, credentials, password, password_is_ha1)
+@@ -305,7 +305,7 @@ def secret_token(request)
+       def nonce(secret_key, time = Time.now)
+         t = time.to_i
+         hashed = [t, secret_key]
+-        digest = ::Digest::MD5.hexdigest(hashed.join(":"))
++        digest = ::ActiveSupport::Digest.hexdigest(hashed.join(":"))
+         ::Base64.strict_encode64("#{t}:#{digest}")
+       end
+ 
+@@ -322,7 +322,7 @@ def validate_nonce(secret_key, request, value, seconds_to_timeout=5*60)
+ 
+       # Opaque based on digest of secret key
+       def opaque(secret_key)
+-        ::Digest::MD5.hexdigest(secret_key)
++        ::ActiveSupport::Digest.hexdigest(secret_key)
+       end
+ 
+     end
+diff --git a/actionpack/lib/action_dispatch/http/cache.rb b/actionpack/lib/action_dispatch/http/cache.rb
+index 9fa2e38ae380..4afef4b02b04 100644
+--- a/lib/action_dispatch/http/cache.rb
++++ b/lib/action_dispatch/http/cache.rb
+@@ -132,7 +132,7 @@ def generate_weak_etag(validators)
+         end
+ 
+         def generate_strong_etag(validators)
+-          %("#{Digest::MD5.hexdigest(ActiveSupport::Cache.expand_cache_key(validators))}")
++          %("#{ActiveSupport::Digest.hexdigest(ActiveSupport::Cache.expand_cache_key(validators))}")
+         end
+ 
+         def cache_control_segments

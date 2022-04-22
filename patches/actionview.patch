@@ -1,0 +1,27 @@
+
+diff --git a/actionview/lib/action_view/digestor.rb b/actionview/lib/action_view/digestor.rb
+index 42e36fa68af5..e1c8e92c76b6 100644
+--- a/lib/action_view/digestor.rb
++++ b/lib/action_view/digestor.rb
+@@ -86,7 +86,7 @@ def initialize(name, logical_name, template, children = [])
+       end
+ 
+       def digest(finder, stack = [])
+-        Digest::MD5.hexdigest("#{template.source}-#{dependency_digest(finder, stack)}")
++        ActiveSupport::Digest.hexdigest("#{template.source}-#{dependency_digest(finder, stack)}")
+       end
+ 
+       def dependency_digest(finder, stack)
+diff --git a/actionview/lib/action_view/helpers/asset_url_helper.rb b/actionview/lib/action_view/helpers/asset_url_helper.rb
+index 717b32674031..7016db4138fc 100644
+--- a/lib/action_view/helpers/asset_url_helper.rb
++++ b/lib/action_view/helpers/asset_url_helper.rb
+@@ -63,7 +63,7 @@ module Helpers
+     # +asset_host+ to a proc like this:
+     #
+     #   ActionController::Base.asset_host = Proc.new { |source|
+-    #     "http://assets#{Digest::MD5.hexdigest(source).to_i(16) % 2 + 1}.example.com"
++    #     "http://assets#{ActiveSupport::Digest.hexdigest(source).to_i(16) % 2 + 1}.example.com"
+     #   }
+     #   image_tag("rails.png")
+     #   # => <img alt="Rails" src="http://assets1.example.com/assets/rails.png" />

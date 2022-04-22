@@ -1,0 +1,90 @@
+
+diff --git a/activesupport/lib/active_support.rb b/activesupport/lib/active_support.rb
+index 11569add37dc..aaa77021c79c 100644
+--- a/lib/active_support.rb
++++ b/lib/active_support.rb
+@@ -50,6 +50,7 @@ module ActiveSupport
+     autoload :Callbacks
+     autoload :Configurable
+     autoload :Deprecation
++    autoload :Digest
+     autoload :Gzip
+     autoload :Inflector
+     autoload :JSON
+diff --git a/activesupport/lib/active_support/cache/file_store.rb b/activesupport/lib/active_support/cache/file_store.rb
+index 99c55b1aa4ab..54e9cd1a6d19 100644
+--- a/lib/active_support/cache/file_store.rb
++++ b/lib/active_support/cache/file_store.rb
+@@ -121,7 +121,7 @@ def normalize_key(key, options)
+           fname = URI.encode_www_form_component(key)
+ 
+           if fname.size > FILEPATH_MAX_SIZE
+-            fname = Digest::MD5.hexdigest(key)
++            fname = ActiveSupport::Digest.hexdigest(key)
+           end
+ 
+           hash = Zlib.adler32(fname)
+diff --git a/activesupport/lib/active_support/cache/mem_cache_store.rb b/activesupport/lib/active_support/cache/mem_cache_store.rb
+index e99e6b4ae2c8..00b8f46c50ca 100644
+--- a/lib/active_support/cache/mem_cache_store.rb
++++ b/lib/active_support/cache/mem_cache_store.rb
+@@ -177,7 +177,7 @@ def normalize_key(key, options)
+           key = super.dup
+           key = key.force_encoding(Encoding::ASCII_8BIT)
+           key = key.gsub(ESCAPE_KEY_CHARS){ |match| "%#{match.getbyte(0).to_s(16).upcase}" }
+-          key = "#{key[0, 213]}:md5:#{Digest::MD5.hexdigest(key)}" if key.size > 250
++          key = "#{key[0, 213]}:md5:#{ActiveSupport::Digest.hexdigest(key)}" if key.size > 250
+           key
+         end
+ 
+diff --git a/activesupport/lib/active_support/digest.rb b/activesupport/lib/active_support/digest.rb
+new file mode 100644
+index 000000000000..4dac32d42058
+--- /dev/null
++++ b/lib/active_support/digest.rb
+@@ -0,0 +1,28 @@
++# frozen_string_literal: true
++
++module ActiveSupport
++  class Digest #:nodoc:
++    class <<self
++      def hash_digest_class
++        @hash_digest_class || ::Digest::SHA1
++      end
++
++      def hash_digest_class=(klass)
++        raise ArgumentError, "#{klass} is expected to implement hexdigest class method" unless klass.respond_to?(:hexdigest)
++        @hash_digest_class = klass
++      end
++
++      def hexdigest(arg)
++        new.hexdigest(arg)
++      end
++    end
++
++    def initialize(digest_class: nil)
++      @digest_class = digest_class || self.class.hash_digest_class
++    end
++
++    def hexdigest(arg)
++      @digest_class.hexdigest(arg).truncate(32)
++    end
++  end
++end
+diff --git a/activesupport/lib/active_support/railtie.rb b/activesupport/lib/active_support/railtie.rb
+index 845788b669ee..62d9de4f3869 100644
+--- a/lib/active_support/railtie.rb
++++ b/lib/active_support/railtie.rb
+@@ -47,5 +47,12 @@ class Railtie < Rails::Railtie # :nodoc:
+         ActiveSupport.send(k, v) if ActiveSupport.respond_to? k
+       end
+     end
++
++    initializer "active_support.set_hash_digest_class" do |app|
++      if app.config.active_support.respond_to?(:use_hash_digest_class) && app.config.active_support.use_hash_digest_class
++        ActiveSupport::Digest.hash_digest_class =
++          app.config.active_support.use_hash_digest_class
++      end
++    end
+   end
+ end
